@@ -11,7 +11,7 @@ class Program
 
         var report = new StringBuilder();
 
-        report.AppendLine("IndexGame|    Winner|   Loser|  Rating");
+        report.AppendLine("IndexGame|    Winner |   Loser |  Rating");
 
         foreach (Game game in games)
         {
