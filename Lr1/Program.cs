@@ -1,29 +1,29 @@
-﻿using Lr1;
+﻿using Lr1.Games;
 using System.IO;
 using System.Text;
-
-
+using Lr1.Accounts;
+using Lr1.GameResults;
 
 class Program
 {
-    public static string printGames(List<Game> games)
+    public static string printGames(List<Statistic> games)
     {
 
         var report = new StringBuilder();
 
-        report.AppendLine("IndexGame|    Winner |   Loser |  Rating");
+        report.AppendLine("IndexGame|    Winner|   Loser|  Rating");
 
-        foreach (Game game in games)
+        foreach (Statistic gamestats in games)
         {
-             report.AppendLine($"\t{game.IndexGame}|\t{game.Winner.Name}|\t {game.Winner.OpponentName}|\t{game.Game_rating}");
+             report.AppendLine($"\t{gamestats.IndexGame}|\t{gamestats.Winner.Name}|\t {gamestats.Winner.OpponentName}|\t{gamestats.Game_rating}");
         }
 
         return report.ToString();
     }
 
-    public static GameAccount PlayGame(int game_rating, GameAccount player1, GameAccount player2)
+    public static BaseAccount PlayGame(BaseGame game, BaseAccount player1, BaseAccount player2, int gamemode)
     {
-        GameAccount winner; 
+        BaseAccount winner; 
         Random rand = new Random();
         int player1numb = rand.Next(0, 10);
         int player2numb = rand.Next(0, 10);
@@ -36,13 +36,17 @@ class Program
 
         if (player1numb > player2numb)
         {
-            player1.WinGame(player2, game_rating);
+            player1.WinGame(player1, game, gamemode);
+            player2.LoseGame(player2, game, gamemode);
             winner = player1;
         }
-        else{
-            player1.LoseGame(player1, game_rating);
+        else
+        {
+            player2.WinGame(player2, game, gamemode);
+            player1.LoseGame(player1, game, gamemode);
             winner = player2;
         }
+       
         return winner;
     }
 
@@ -50,41 +54,66 @@ class Program
 
     public static void Main(string[] args)
     {
-        List<Game> games = new List<Game>();
+        List<Statistic> games = new List<Statistic>();
         int index_game = 1;
         
 
-        GameAccount player1 = new GameAccount("Bane", 2000, 0);
-        GameAccount player2 = new GameAccount("Chen", 2000, 0);
+        var player1 = new BonusAccount("Bane", 2000, 0 );//аккаунт с 10% бонусом за винстрик
+        var player2 = new VipAccount ("Chen", 2000, 0);//в 2 раз меньше штраф за проигрыш 
 
         player1.OpponentName = player2.Name;
         player2.OpponentName = player1.Name;
-
-       string data;
+       
         Console.WriteLine("Enter amount of rounds:");
-        data = Console.ReadLine();
-        
-       int iterations = Convert.ToInt32(data);
-        Console.WriteLine("Enter rating for each round:");
+        string data = Console.ReadLine();   
+        int iterations = Convert.ToInt32(data);
 
+        Console.WriteLine("Enter game mode:\n1 - ClassicGame\n2 - TrainingGame\n3 - OneRiskGame\n");
+        string gamemodestr = Console.ReadLine();
+        int gamemode = Convert.ToInt32(gamemodestr);
+
+        BaseGame game;
+
+        decimal rating = 0;
+
+        if (gamemode == 1)
+        {
+            Console.WriteLine("Enter rating for rounds:");
+            string ratingdata = Console.ReadLine();
+            rating = Convert.ToInt32(ratingdata);
+            game = new ClassicGame(index_game, rating);
+        }
+
+        else if (gamemode == 2)
+        {
+            game = new TrainingGame(index_game, rating);
+        }
+        else if(gamemode == 3){
+            Console.WriteLine("Enter rating for rounds:");
+            string ratingdata = Console.ReadLine();
+            rating = Convert.ToInt32(ratingdata);
+            game = new OneRiskGame(index_game, rating);
+        }
+        else
+        {
+            throw new ArgumentOutOfRangeException(nameof(rating), "Exeption catch negative rating, please enter positive value!");
+        }
 
         for (int i = 0; i < iterations; i++)
         {
-            string ratingdata;
-            ratingdata = Console.ReadLine();
-            int rating = Convert.ToInt32(ratingdata);
+            if (rating < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(rating), "Exeption catch negative rating, please enter positive value!");
 
-            if (rating < 0) {
-               throw new ArgumentOutOfRangeException(nameof(rating),"Exeption catch negative rating, please enter positive value!");
-            
             }
+         
+            BaseAccount winner = PlayGame(game, player1, player2, gamemode);
 
-            GameAccount winner = PlayGame(rating, player1, player2);
-            Game game1 = new Game(winner, index_game, rating);
-            games.Add(game1);
+            Statistic gamestats = new Statistic(winner, index_game, rating, winner.CurrentRating);
+            games.Add(gamestats);
             index_game++;
         }
-
+       
         Console.WriteLine("Current Rating");
                 Console.WriteLine(player1.Name + " = " + player1.CurrentRating + "; Amount games = " + player1.GameCount + "\n" + player2.Name + " = " + player2.CurrentRating + "; Amount games = "+ player1.GameCount + "\n");
 
