@@ -12,11 +12,11 @@ namespace Lr1.Games
         public decimal IndexGame { get; set; }
         public decimal Game_rating { get; set; }
 
-        public BaseGame(decimal index_game, decimal game_rating)
+        public BaseGame(decimal index_game)
         {
 
             IndexGame = index_game;
-            Game_rating = game_rating;
+           
 
         }
 

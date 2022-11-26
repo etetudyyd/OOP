@@ -9,8 +9,8 @@ namespace Lr1.Games
 {
     public class TrainingGame : BaseGame
     {
-        public TrainingGame(decimal index_game, decimal game_rating)
-            : base(index_game, game_rating)
+        public TrainingGame(decimal index_game)
+            : base(index_game)
         {
         }
 
